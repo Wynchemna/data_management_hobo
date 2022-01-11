@@ -16,7 +16,7 @@ names(data_raw) <- col_names
 
 
 # ---- save data with clean names ----
-write_csv(x=data, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_managemant_hobo/02_data_processed/10347355_cleannames.csv')
+write_csv(x=data_raw, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_managemant_hobo/02_data_processed/10347355_cleannames.csv')
 
 
 # ---- look at the data ----
@@ -24,9 +24,22 @@ plot(x = data$id, y = data$temp, type = 'l') #temp
 plot(x = data$id, y = data$lux, type = 'l') #lux
 
 
-# ---- rename columns ----
+# # ---- choose needed collums ----
+# data_raw_4c <- data_raw %>% 
+# 	mutate(dttm = dmy_hms(dttm)) %>% 
+# 	mutate(dttm_2 = substring(dttm, 1, 10),
+# 	       dttm_2 = ymd(dttm_2),
+# 	       dttm_2 = ymd(dttm_2)) %>% 
+# 	mutate(timestamp = substring(dttm, 12, 19),
+# 	       timestamp = hms(timestamp)) %>% 
+# 	filter(dttm < '2022-01-09 23:50:10') %>% 
+# 	select(id, dttm, temp, lux) 
+# tail(data_raw_4c)
+
+
+# ---- filter data to 4 full weeks ----
+
 data <- data_raw %>% 
-	select(id, dttm, temp, lux) %>% 
 	mutate(dttm = dmy_hms(dttm)) %>% 
 	mutate(dttm_2 = substring(dttm, 1, 10),
 	       dttm_2 = ymd(dttm_2),
@@ -34,8 +47,11 @@ data <- data_raw %>%
 	mutate(timestamp = substring(dttm, 12, 19),
 	       timestamp = hms(timestamp)) %>% 
 	filter('2021-12-12' < dttm_2 & dttm_2 < '2022-01-10') %>% 
-	filter(dttm_2 == '2022-01-09' & timestamp < '23H 10M 0S') %>% 
+	#filter(dttm_2 == '2022-01-09' & timestamp < '23H 10M 0S') %>% 
 	select(id, dttm, temp, lux)
+
+# ---- save data with clean names ----
+write_csv(x=data, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_managemant_hobo/02_data_processed/10347355.csv')
 
 
 
