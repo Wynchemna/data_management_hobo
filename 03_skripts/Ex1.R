@@ -7,7 +7,7 @@ library(tidyverse)
 library(lubridate)
 
 # ---- load raw data ----
-data_raw <- read_csv(file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_management_hobo/01_data_raw/hobo/2022/raw/10347355.csv', skip = 1, col_names = T) 
+data_raw <- read_csv(file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/01_data_raw/hobo/2022/raw/10347355.csv', skip = 1, col_names = T) 
 
 #janitor::clean_names(data) if skip = 1
 
@@ -16,7 +16,7 @@ names(data_raw) <- col_names
 
 
 # ---- save data with clean names ----
-write_csv(x=data_raw, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_managemant_hobo/02_data_processed/10347355_cleannames.csv')
+write_csv(x=data_raw, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_managemant_hobo/02_data_processed/10347355_cleannames.csv')
 
 
 # ---- look at the data ----
@@ -51,7 +51,7 @@ data <- data_raw %>%
 	select(id, dttm, temp, lux)
 
 # ---- save data with clean names ----
-write_csv(x=data, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_managment_storage/data_managemant_hobo/02_data_processed/10347355.csv')
+write_csv(x=data, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_managemant_hobo/02_data_processed/10347355.csv')
 
 
 
