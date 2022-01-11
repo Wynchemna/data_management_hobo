@@ -27,14 +27,35 @@ plot(x = data$id, y = data$lux, type = 'l') #lux
 # ---- rename columns ----
 data <- data_raw %>% 
 	select(id, dttm, temp, lux) %>% 
-	mutate(dttm = dmy_hms(dttm))
+	mutate(dttm = dmy_hms(dttm)) %>% 
+	mutate(dttm_2 = substring(dttm, 1, 10),
+	       dttm_2 = ymd(dttm_2),
+	       dttm_2 = ymd(dttm_2)) %>% 
+	mutate(timestamp = substring(dttm, 12, 19),
+	       timestamp = hms(timestamp)) %>% 
+	filter('2021-12-12' < dttm_2 & dttm_2 < '2022-01-10') %>% 
+	filter(dttm_2 == '2022-01-09' & timestamp < '23H 10M 0S') %>% 
+	select(id, dttm, temp, lux)
 
 
-Tagesmittel_grafik <- data %>% 
-	ggplot(aes(x = dttm, y = temp)) + theme_bw(base_size = 15) +
-	geom_line(color = "darkblue") +
-	labs(title = "Abfluss im Tagesmittel",
-	     #subtitle = Name,
-	     x = "Datum",
-	     y = "Abfluss [mÂ³/s]")
+
+
+
+
+
+
+
+
+
+
+# Tagesmittel_grafik <- data %>% 
+# 	ggplot(aes(x = dttm, y = temp)) + theme_bw(base_size = 15) +
+# 	geom_line(color = "darkblue") +
+# 	labs(title = "Abfluss im Tagesmittel",
+# 	     #subtitle = Name,
+# 	     x = "Datum",
+# 	     y = "Abfluss [mÂ³/s]")
+
+
+
 
