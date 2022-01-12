@@ -71,11 +71,7 @@ data_10min_QC4 <- data_10min_QC3 %>%
 		between(lux, 20000, 50000) ~ "sunshine",
 		lux > 50000 ~ "sunshine_bright",
 	)) %>% 
-	mutate(day_night = case_when(
-		between(substring(dttm, 12, 20,), '06:00:00', '17:59:59') ~ 1,
-		substring(dttm, 12, 20,) < '06:00:00' ~ 0,
-		substring(dttm, 12, 20,) > '17:59:59') ~ 0)
+	mutate(time = substring(dttm, 12, 20)) %>% 
+	mutate(if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")), 1641963600, 1642006799), "day","night"))
 
-	mutate(day_night = if_else(between(substring(dttm, 12, 20,), '06:00:00', '17:59:59'), day_time, night_time))
-	
 	mutate(lux_th1 = if_else(lux > 20000))
