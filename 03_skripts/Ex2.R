@@ -28,18 +28,35 @@ sum(data_10min_QC2$qc2, na.rm = T)
 
 # ---- Check for minimum variability 1.3 ----
 data_10min_QC3 <- data_10min_QC2 %>% 
-	mutate(qc3 = if_else(lag(temp, n = 5) == temp, 1, 0))
+	mutate(qc3_V1 = lag(temp, n = 1)) %>% 
+	mutate(qc3_V2 = lag(temp, n = 2)) %>% 
+	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
+	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
+	mutate(qc3_V5 = lag(temp, n = 5)) %>% 
 	
+	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3)
+
 sum(data_10min_QC3$qc3, na.rm = T)
 
 
-x <- 1:50
-lag(x, n = 5)
+# test <- tibble(temp = c(4.52, 4.52, 4.52, 4.53, 4.55, 4.58, 4, 4, 4, 4, 4, 4, 5, 5, 8, 7, 9, 9, 9, 5, 9, 9)) %>% 
+# 	# mutate(qc3 = if_else(lag(temp, n = 5) != temp, 0, 1))
+# 	# mutate(qc3_V1 = lag(temp, n = 1)) %>% 
+# 	# mutate(qc3_V2 = lag(temp, n = 2)) %>% 
+# 	# mutate(qc3_V3 = lag(temp, n = 3)) %>% 
+# 	# mutate(qc3_V4 = lag(temp, n = 4)) %>% 
+# 	# mutate(qc3_V5 = lag(temp, n = 5)) %>% 
+# 	
+# 	mutate(qc3_V1 = lag(temp, n = 1)) %>% 
+# 	mutate(qc3_V2 = temp[-1]) %>% 
+# 	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
+# 	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
+# 	mutate(qc3_V5 = lag(temp, n = 5)) %>%
+# 	
+# 	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
+# 	select(temp, qc3)
 
 
-test <- tibble(temp = c(4.52, 4.52, 4.52, 4.53, 4.55, 4.58, 4, 4, 4, 4, 4, 4, 5, 5, 8, 7, 9, 9, 9, 5, 9, 9)) %>% 
-	mutate(qc3 = if_else(all_equal(temp, lag(temp, n = 5)), 1, 0))
 
-
-temp = c(4.52, 4.52, 4.52, 4.53, 4.55, 4.58, 4, 4, 4, 4, 4, 4, 5, 5, 8, 7, 9, 9, 9, 5, 9, 9)
 
