@@ -59,4 +59,23 @@ sum(data_10min_QC3$qc3, na.rm = T)
 
 
 
+# ---- Check influence of sunlight on temperature 1.4 ----
 
+data_10min_QC4 <- data_10min_QC3 %>% 
+	mutate(SIC_class = case_when(
+		between(lux, 0, 10) ~ "night",
+		between(lux, 10, 500) ~ "sunrise_sunset",
+		between(lux, 500, 2000) ~ "overcast_full",
+		between(lux, 2000, 15000) ~ "overcast_light",
+		between(lux, 15000, 20000) ~ "clear_sky",
+		between(lux, 20000, 50000) ~ "sunshine",
+		lux > 50000 ~ "sunshine_bright",
+	)) %>% 
+	mutate(day_night = case_when(
+		between(substring(dttm, 12, 20,), '06:00:00', '17:59:59') ~ 1,
+		substring(dttm, 12, 20,) < '06:00:00' ~ 0,
+		substring(dttm, 12, 20,) > '17:59:59') ~ 0)
+
+	mutate(day_night = if_else(between(substring(dttm, 12, 20,), '06:00:00', '17:59:59'), day_time, night_time))
+	
+	mutate(lux_th1 = if_else(lux > 20000))
