@@ -72,6 +72,8 @@ data_10min_QC4 <- data_10min_QC3 %>%
 		lux > 50000 ~ "sunshine_bright",
 	)) %>% 
 	mutate(time = substring(dttm, 12, 20)) %>% 
-	mutate(if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")), 1641963600, 1642006799), "day","night"))
+	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")), 1641963600, 1642006799), "day","night")) %>% 
+	# transmute time to unix
 
-	mutate(lux_th1 = if_else(lux > 20000))
+	mutate(lux_th1 = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0)) %>% 
+	mutate(lux_th2 = rollapply(lux_th1, width = 1, FUN = sum))
