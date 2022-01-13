@@ -64,7 +64,7 @@ sum(data_10min_QC3$qc3, na.rm = T)
 data_10min_QC4 <- data_10min_QC3 %>% 
 	mutate(SIC_class = case_when(
 		between(lux, 0, 10) ~ "night",
-		between(lux, 10, 500) ~ "sunrise_sunset",
+		between(lux, 10, 500) ~ "dawn",
 		between(lux, 500, 2000) ~ "overcast_full",
 		between(lux, 2000, 15000) ~ "overcast_light",
 		between(lux, 15000, 20000) ~ "clear_sky",
@@ -72,8 +72,11 @@ data_10min_QC4 <- data_10min_QC3 %>%
 		lux > 50000 ~ "sunshine_bright",
 	)) %>% 
 	mutate(time = substring(dttm, 12, 20)) %>% 
-	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")), 1641963600, 1642006799), "day","night")) %>% 
-	# transmute time to unix
+	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")),
+					   as.numeric(as.POSIXct('06:00:00', format="%H:%M:%S")), 
+					   as.numeric(as.POSIXct('17:59:59', format="%H:%M:%S"))), 
+				   "day","night")) %>% 
+	# transform time to milliseconds, depending on the actual day
 
 	mutate(lux_th1 = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0)) %>% 
 	mutate(lux_th2 = rollapply(lux_th1, width = 1, FUN = sum))
