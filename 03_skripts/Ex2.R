@@ -78,5 +78,9 @@ data_10min_QC4 <- data_10min_QC3 %>%
 				   "day","night")) %>% 
 	# transform time to milliseconds, depending on the actual day
 
-	mutate(lux_th1 = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0)) %>% 
-	mutate(lux_th2 = rollapply(lux_th1, width = 1, FUN = sum))
+	mutate(lux_sun = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0)) %>% 
+	mutate(lux_sun = rollapply(lux_sun, width = 3, FUN = sum, fill = NA)) %>% 
+	mutate(lux_sunbright = if_else(SIC_class == "sunshine_bright" & day_night == "day", 1, 0)) %>% 
+	mutate(lux_sunbright = rollapply(lux_sunbright, width = 7, FUN = sum, fill = NA)) %>% 
+	mutate(qc4 = if_else(lux_sun > 0 | lux_sunbright > 0, 1, 0)) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4)
