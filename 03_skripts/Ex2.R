@@ -38,8 +38,10 @@ data_10min_QC3 <- data_10min_QC2 %>%
 	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
 	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
 	mutate(qc3_V5 = lag(temp, n = 5)) %>% 
+	mutate(qc3_V6 = lag(temp, n = 6)) %>% 
 	
-	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
+	
+	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp & qc3_V6 == temp, 1, 0)) %>% 
 	select(id, dttm, temp, lux, qc1, qc2, qc3)
 
 sum(data_10min_QC3$qc3, na.rm = T)
@@ -91,6 +93,7 @@ data_10min_QC4 <- data_10min_QC3 %>%
 	       qc4 = if_else(lux_sun > 0 | lux_sunbright > 0, 1, 0)) %>% 
 	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4)
 
+sum(data_10min_QC4$qc4, na.rm = T)
 
 
 # ---- Flag datapoints with at least one QC-Fail ----
@@ -120,6 +123,11 @@ data_hourly_upload <- data_hourly %>%
 	select(date_time, th)
 
 
-	
+# ---- Graph QC-Fails ----
+qc_sum <- tibble(qc1 = sum(data_10min_QC1$qc1, na.rm = T),
+		 qc2 = sum(data_10min_QC2$qc2, na.rm = T),
+		 qc3 = sum(data_10min_QC3$qc3, na.rm = T),
+		 qc4 = sum(data_10min_QC4$qc4, na.rm = T)
+)
 	
 
