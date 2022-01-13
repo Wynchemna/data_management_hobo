@@ -95,25 +95,31 @@ data_10min_QC4 <- data_10min_QC3 %>%
 
 # ---- Flag datapoints with at least one QC-Fail ----
 data_10min_QC_flag <- data_10min_QC4 %>% 
-	mutate(qc_total = qc1 + qc2 + qc3 + qc4,
-	       flag_text = if_else(qc_total > 1, "bad", "good")) %>% 
-	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4, flag_text)
+	mutate(qc_total = qc1 + qc2 + qc3 + qc4) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4, qc_total)
 
 # ---- convert to hourly-data if less than 2 flags ----
 data_hourly <- data_10min_QC_flag %>% 
-	mutate(hour = hour(dttm)) %>% 
-	mutate(temp_corrected = if_else(flag_text == "bad", -9999, temp)) %>% 
-	mutate(temp_corrected = na_if(temp_corrected, -9999)) %>% 
-	select(id, dttm, hour, temp_corrected) %>% 
-	mutate(date = date(dttm)) %>% 
-	group_by(date, hour) %>% 
-	summarise(th = round(meanNA(temp_corrected), 3)) %>% 
-	ungroup() %>% 
-	mutate(dttm = seq(ymd_hm('2021-12-13 00:00'),
-		   ymd_hm('2022-01-09 23:00'),
-		   by = '1 hour')) %>% 
-	select(dttm, th)
-	
-	
+	mutate(dttm = floor_date(dttm, 'hour')) %>% 
+	group_by(dttm) %>% 
+	summarise(th = round(meanNA(temp), 3),
+		  lux = round(meanNA(lux), 3),
+		  qc1 = sum(qc1),
+		  qc2 = sum(qc2),
+		  qc3 = sum(qc3),
+		  qc4 = sum(qc4),
+		  qc_total = sum(qc_total)) %>% 
+	rename(date_time = dttm) %>% 
+	ungroup() 
 
+# hours with more than one flag will be declared as NA
+data_hourly$th[which(data_hourly$qc_total > 1)] <- NA
+
+# delete all not needed collums
+data_hourly_upload <- data_hourly %>% 
+	select(date_time, th)
+
+
+	
+	
 
