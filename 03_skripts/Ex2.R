@@ -7,6 +7,11 @@ library(tidyverse)
 library(lubridate)
 library(zoo)
 
+# ---- functions ----
+
+meanNA <- function(x){mean(x, na.rm = TRUE)}
+
+
 
 # ---- load data ----
 data_10min <- read_csv(file = 'https://raw.githubusercontent.com/data-hydenv/data/master/hobo/2022/10_minute/10347355.csv',  col_names = T) 
@@ -91,7 +96,24 @@ data_10min_QC4 <- data_10min_QC3 %>%
 # ---- Flag datapoints with at least one QC-Fail ----
 data_10min_QC_flag <- data_10min_QC4 %>% 
 	mutate(qc_total = qc1 + qc2 + qc3 + qc4,
-	       flag_num = if_else(qc_total > 1, 1, 0),
-	       flag_text = if_else(flag_num == 1, "bad", "good")) %>% 
+	       flag_text = if_else(qc_total > 1, "bad", "good")) %>% 
 	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4, flag_text)
+
+# ---- convert to hourly-data if less than 2 flags ----
+data_hourly <- data_10min_QC_flag %>% 
+	mutate(hour = hour(dttm)) %>% 
+	mutate(temp_corrected = if_else(flag_text == "bad", -9999, temp)) %>% 
+	mutate(temp_corrected = na_if(temp_corrected, -9999)) %>% 
+	select(id, dttm, hour, temp_corrected) %>% 
+	mutate(date = date(dttm)) %>% 
+	group_by(date, hour) %>% 
+	summarise(th = round(meanNA(temp_corrected), 3)) %>% 
+	ungroup() %>% 
+	mutate(dttm = seq(ymd_hm('2021-12-13 00:00'),
+		   ymd_hm('2022-01-09 23:00'),
+		   by = '1 hour')) %>% 
+	select(dttm, th)
+	
+	
+
 
