@@ -1,0 +1,178 @@
+---
+title: 'Exercise #2'
+author: "Felix Radtke"
+date: "date of submission"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# more internal settings can go here
+# Consider help pages like:
+# https://rmarkdown.rstudio.com/lesson-1.html
+# https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf
+
+```
+
+### Loaded packages
+
+```{r libraries}
+# Load all packages here, consider to mute output of this code chunk
+# https://rmarkdown.rstudio.com/lesson-3.html
+library(tidyverse)
+library(lubridate)
+library(zoo)
+```
+
+### Preprocessing / R functions
+
+```{r preprocessing_or_functions, message=FALSE, warning=FALSE}
+# If data preprocessing is needed, do it here.
+# If you have specific functions, placed them here.
+# If this code chunk is not needed, delete it.
+meanNA <- function(x){mean(x, na.rm = TRUE)}
+
+```
+
+## 1. Quality control procedures (4 QCPs)
+
+```{r, eval = FALSE}
+# Load data from Github (then eval = TRUE)
+data_10min <- read_csv(file = 'https://raw.githubusercontent.com/data-hydenv/data/master/hobo/2022/10_minute/10347355.csv',  col_names = T) 
+head(data)
+```
+
+### 1.1 Measurement range (Plausible values)
+
+```{r qcp1, eval = FALSE}
+# code for qcp2 here, e.g.: (set eval = TRUE to activate the code chunk)
+data_10min_QC1 <- data_10min %>% 
+	mutate(qc1 = if_else(between(temp, -20, 70), 0, 1))
+
+sum(data_10min_QC1$qc1, na.rm = T)
+```
+
+**Question**: How many data points are outside the measurement range?
+
+**Answer**:
+0 Points are outside the measurement range
+
+### 1.2 Plausible rate of change
+
+```{r qcp2}
+data_10min_QC2 <- data_10min_QC1 %>% 
+	mutate(qc2 = if_else(lag(temp) > (temp + 1) | lag(temp) < (temp - 1), 1, 0))
+
+sum(data_10min_QC2$qc2, na.rm = T)
+```
+
+**Question**: Describe shortly how many data points failed during this QCP and discuss whether there is a certain daytime pattern of failure or not?
+
+**Answer**:
+
+### 1.3 Minimum variability (Persistence)
+
+```{r qcp3}
+data_10min_QC3 <- data_10min_QC2 %>% 
+	mutate(qc3_V1 = lag(temp, n = 1)) %>% 
+	mutate(qc3_V2 = lag(temp, n = 2)) %>% 
+	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
+	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
+	mutate(qc3_V5 = lag(temp, n = 5)) %>% 
+	
+	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3)
+
+sum(data_10min_QC3$qc3, na.rm = T)
+```
+
+**Task**: Code in this section should analyses the persistance.
+
+### 1.4 Light intensity
+
+```{r qcp4}
+data_10min_QC4 <- data_10min_QC3 %>% 
+	mutate(SIC_class = case_when(
+		between(lux, 0, 10) ~ "night",
+		between(lux, 10, 500) ~ "dawn",
+		between(lux, 500, 2000) ~ "overcast_full",
+		between(lux, 2000, 15000) ~ "overcast_light",
+		between(lux, 15000, 20000) ~ "clear_sky",
+		between(lux, 20000, 50000) ~ "sunshine",
+		lux > 50000 ~ "sunshine_bright",
+	)) %>% 
+	mutate(time = substring(dttm, 12, 20)) %>% 
+	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")),
+					   as.numeric(as.POSIXct('06:00:00', format="%H:%M:%S")), 
+					   as.numeric(as.POSIXct('17:59:59', format="%H:%M:%S"))), 
+				   "day","night")) %>% 
+	# transform time to milliseconds, depending on the actual day
+
+
+	mutate(lux_sun = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0),
+	       lux_sun = rollapply(lux_sun, width = 3, FUN = sum, fill = NA),
+	       lux_sunbright = if_else(SIC_class == "sunshine_bright" & day_night == "day", 1, 0),
+	       lux_sunbright = rollapply(lux_sunbright, width = 7, FUN = sum, fill = NA),
+	       qc4 = if_else(lux_sun > 0 | lux_sunbright > 0, 1, 0)) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4)
+
+sum(data_10min_QC4$qc4, na.rm = T)
+```
+
+**Task**: Discuss shortly how often and when during daytime the QCP4 flags bad data. Elaborate on some reasons for your results.
+
+**Answer**:
+
+## 2. Synthesis
+
+```{r synthesis}
+# code for synthesis here
+```
+
+**Task**: Present a table or graph to show how many data points fail during the four specific QCPs. Discuss shortly the reasons for failure and compare the different QCPs against each other.
+
+**Answer**:
+
+## 3. Results
+
+### 3.1 Result (Flagging system: 10-minutes-values)
+
+```{r res1}
+qc_df <- data_10min_QC4 %>% 
+	mutate(qc_total = qc1 + qc2 + qc3 + qc4) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4, qc_total)
+```
+
+**Task**: At the end of the code section above you should generate one! tibble or data.frame named `qc_df` with all time information, all data points (temperature and lux) and your outcomes of the different QCPs.
+
+### 3.2 Result (Aggregate to hourly series)
+
+```{r res2}
+data_hourly_pre <- qc_df %>% 
+	mutate(dttm = floor_date(dttm, 'hour')) %>% 
+	group_by(dttm) %>% 
+	summarise(th = round(meanNA(temp), 3),
+		  lux = round(meanNA(lux), 3),
+		  qc1 = sum(qc1),
+		  qc2 = sum(qc2),
+		  qc3 = sum(qc3),
+		  qc4 = sum(qc4),
+		  qc_total = sum(qc_total)) %>% 
+	rename(date_time = dttm) %>% 
+	ungroup() 
+
+# hours with more than one flag will be declared as NA
+data_hourly_pre$th[which(data_hourly_pre$qc_total > 1)] <- NA
+
+# delete all not needed collums
+data_hourly <- data_hourly_pre %>% 
+	select(date_time, th)
+```
+
+**Task**: At the end of the code section above you should generate one! tibble or data.frame named `hobo_hourly` with averaged temperature values per hour or NA values (if the hour is flagged as bad data). See exercise description for more details.
+
+-   First column: YYYY-DD-MM HH:MM:SS
+
+-   Second column: Temperature values (4 digits), NA values possible
