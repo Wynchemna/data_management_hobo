@@ -78,9 +78,20 @@ data_10min_QC4 <- data_10min_QC3 %>%
 				   "day","night")) %>% 
 	# transform time to milliseconds, depending on the actual day
 
-	mutate(lux_sun = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0)) %>% 
-	mutate(lux_sun = rollapply(lux_sun, width = 3, FUN = sum, fill = NA)) %>% 
-	mutate(lux_sunbright = if_else(SIC_class == "sunshine_bright" & day_night == "day", 1, 0)) %>% 
-	mutate(lux_sunbright = rollapply(lux_sunbright, width = 7, FUN = sum, fill = NA)) %>% 
-	mutate(qc4 = if_else(lux_sun > 0 | lux_sunbright > 0, 1, 0)) %>% 
+
+	mutate(lux_sun = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0),
+	       lux_sun = rollapply(lux_sun, width = 3, FUN = sum, fill = NA),
+	       lux_sunbright = if_else(SIC_class == "sunshine_bright" & day_night == "day", 1, 0),
+	       lux_sunbright = rollapply(lux_sunbright, width = 7, FUN = sum, fill = NA),
+	       qc4 = if_else(lux_sun > 0 | lux_sunbright > 0, 1, 0)) %>% 
 	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4)
+
+
+
+# ---- Flag datapoints with at least one QC-Fail ----
+data_10min_QC_flag <- data_10min_QC4 %>% 
+	mutate(qc_total = qc1 + qc2 + qc3 + qc4,
+	       flag_num = if_else(qc_total > 1, 1, 0),
+	       flag_text = if_else(flag_num == 1, "bad", "good")) %>% 
+	select(id, dttm, temp, lux, qc1, qc2, qc3, qc4, flag_text)
+
