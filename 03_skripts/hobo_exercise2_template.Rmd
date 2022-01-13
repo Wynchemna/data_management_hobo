@@ -81,8 +81,10 @@ data_10min_QC3 <- data_10min_QC2 %>%
 	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
 	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
 	mutate(qc3_V5 = lag(temp, n = 5)) %>% 
+	mutate(qc3_V6 = lag(temp, n = 6)) %>% 
 	
-	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
+	
+	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp & qc3_V6 == temp, 1, 0)) %>% 
 	select(id, dttm, temp, lux, qc1, qc2, qc3)
 
 sum(data_10min_QC3$qc3, na.rm = T)
