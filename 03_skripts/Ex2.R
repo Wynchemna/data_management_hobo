@@ -1,21 +1,16 @@
 # Description
 # Data Quality check
 
-
 # ---- load libraries ----
 library(tidyverse)
 library(lubridate)
 library(zoo)
 
 # ---- functions ----
-
 meanNA <- function(x){mean(x, na.rm = TRUE)}
-
-
 
 # ---- load data ----
 data_10min <- read_csv(file = 'https://raw.githubusercontent.com/data-hydenv/data/master/hobo/2022/10_minute/10347355.csv',  col_names = T) 
-
 
 # ---- Check for plausible values 1.1 ----
 data_10min_QC1 <- data_10min %>% 
@@ -45,25 +40,6 @@ data_10min_QC3 <- data_10min_QC2 %>%
 	select(id, dttm, temp, lux, qc1, qc2, qc3)
 
 sum(data_10min_QC3$qc3, na.rm = T)
-
-
-# test <- tibble(temp = c(4.52, 4.52, 4.52, 4.53, 4.55, 4.58, 4, 4, 4, 4, 4, 4, 5, 5, 8, 7, 9, 9, 9, 5, 9, 9)) %>% 
-# 	# mutate(qc3 = if_else(lag(temp, n = 5) != temp, 0, 1))
-# 	# mutate(qc3_V1 = lag(temp, n = 1)) %>% 
-# 	# mutate(qc3_V2 = lag(temp, n = 2)) %>% 
-# 	# mutate(qc3_V3 = lag(temp, n = 3)) %>% 
-# 	# mutate(qc3_V4 = lag(temp, n = 4)) %>% 
-# 	# mutate(qc3_V5 = lag(temp, n = 5)) %>% 
-# 	
-# 	mutate(qc3_V1 = lag(temp, n = 1)) %>% 
-# 	mutate(qc3_V2 = temp[-1]) %>% 
-# 	mutate(qc3_V3 = lag(temp, n = 3)) %>% 
-# 	mutate(qc3_V4 = lag(temp, n = 4)) %>% 
-# 	mutate(qc3_V5 = lag(temp, n = 5)) %>%
-# 	
-# 	mutate(qc3 = if_else(qc3_V1 == temp & qc3_V2 == temp & qc3_V3 == temp & qc3_V4 == temp & qc3_V5 == temp, 1, 0)) %>% 
-# 	select(temp, qc3)
-
 
 
 # ---- Check influence of sunlight on temperature 1.4 ----
@@ -124,10 +100,17 @@ data_hourly_upload <- data_hourly %>%
 
 
 # ---- Graph QC-Fails ----
-qc_sum <- tibble(qc1 = sum(data_10min_QC1$qc1, na.rm = T),
-		 qc2 = sum(data_10min_QC2$qc2, na.rm = T),
-		 qc3 = sum(data_10min_QC3$qc3, na.rm = T),
-		 qc4 = sum(data_10min_QC4$qc4, na.rm = T)
-)
+qc_sum <- tibble(qc = c("QC1", "QC2", "QC3", "QC4"),
+		 fails = c(sum(data_10min_QC1$qc1, na.rm = T),
+		 	  sum(data_10min_QC2$qc2, na.rm = T),
+		 	  sum(data_10min_QC3$qc3, na.rm = T),
+		 	  sum(data_10min_QC4$qc4, na.rm = T)))
 	
 
+fails_graph <- ggplot() + theme_bw(base_size = 15) + 
+	geom_bar(data = qc_sum, aes(x = qc, y = fails), 
+		 stat = 'identity') +
+	labs(title = "Quality control procedures",
+	     subtitle = "Number of fails per quality control", 
+	     x = "QCP's", 
+	     y = "Count of fails")
