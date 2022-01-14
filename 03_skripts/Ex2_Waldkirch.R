@@ -99,6 +99,10 @@ data_hourly_upload <- data_hourly %>%
 	select(date_time, th)
 
 
+#Surface
+write_csv(x=data_hourly_upload, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10801132_hourly.csv')
+
+
 # ---- Graph QC-Fails ----
 qc_sum <- tibble(qc = c("QC1", "QC2", "QC3", "QC4"),
 		 fails = c(sum(data_10min_QC1$qc1, na.rm = T),
