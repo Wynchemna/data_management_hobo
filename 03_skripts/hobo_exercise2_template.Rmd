@@ -38,7 +38,7 @@ meanNA <- function(x){mean(x, na.rm = TRUE)}
 
 ## 1. Quality control procedures (4 QCPs)
 
-```{r, eval = FALSE}
+```{r, eval = TRUE}
 # Load data from Github (then eval = TRUE)
 data_10min <- read_csv(file = 'https://raw.githubusercontent.com/data-hydenv/data/master/hobo/2022/10_minute/10347355.csv',  col_names = T) 
 head(data)
@@ -46,7 +46,7 @@ head(data)
 
 ### 1.1 Measurement range (Plausible values)
 
-```{r qcp1, eval = FALSE}
+```{r qcp1, eval = TRUE}
 # code for qcp2 here, e.g.: (set eval = TRUE to activate the code chunk)
 data_10min_QC1 <- data_10min %>% 
 	mutate(qc1 = if_else(between(temp, -20, 70), 0, 1))
@@ -57,7 +57,7 @@ sum(data_10min_QC1$qc1, na.rm = T)
 **Question**: How many data points are outside the measurement range?
 
 **Answer**:
-0 Points are outside the measurement range
+0 Points are outside the measurement range.
 
 ### 1.2 Plausible rate of change
 
@@ -130,7 +130,20 @@ sum(data_10min_QC4$qc4, na.rm = T)
 ## 2. Synthesis
 
 ```{r synthesis}
-# code for synthesis here
+qc_sum <- tibble(qc = c("QC1", "QC2", "QC3", "QC4"),
+		 fails = c(sum(data_10min_QC1$qc1, na.rm = T),
+		 	  sum(data_10min_QC2$qc2, na.rm = T),
+		 	  sum(data_10min_QC3$qc3, na.rm = T),
+		 	  sum(data_10min_QC4$qc4, na.rm = T)))
+	
+
+ggplot() + theme_bw(base_size = 15) + 
+	geom_bar(data = qc_sum, aes(x = qc, y = fails), 
+		 stat = 'identity') +
+	labs(title = "Quality control procedures",
+	     subtitle = "Number of fails per quality control", 
+	     x = "QC's", 
+	     y = "Count of fails")
 ```
 
 **Task**: Present a table or graph to show how many data points fail during the four specific QCPs. Discuss shortly the reasons for failure and compare the different QCPs against each other.
@@ -168,7 +181,7 @@ data_hourly_pre <- qc_df %>%
 # hours with more than one flag will be declared as NA
 data_hourly_pre$th[which(data_hourly_pre$qc_total > 1)] <- NA
 
-# delete all not needed collums
+# deselect all not needed collums
 data_hourly <- data_hourly_pre %>% 
 	select(date_time, th)
 ```
