@@ -1,83 +1,27 @@
-# # ---
-# # 	title: "Exercise 3"
-# # author: "Felix Radtke"
-# # date: "14 1 2022"
-# # output: html_document
-# # ---
-# 
-# 
-# ### Loaded packages
-# 
-# library("lubridate")
-# library("tidyverse")
-# library("zoo")
-# library("tibbletime")
-# 
-# rm(list=ls())
-# 
-# # import
-# my_hobo <- read.csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_hourly.csv")
-# 
-# my_hobo <- as_tibble(my_hobo) %>% 
-# 	mutate(dttm = ymd_hms(date_time)) %>% 
-# 	mutate(my_hobo = th) %>% 
-# 	select("dttm", "my_hobo")
-# 
-# # dwd airport
-# dwd_airport <- read.csv("https://raw.githubusercontent.com/jasperschalla/station_data/master/dwd_airport.csv")
-# 
-# dwd_airport <- as_tibble(dwd_airport) %>% 
-# 	mutate(dttm = ymd_hms(dttm))
-# 
-# # dwd urban
-# dwd_urban <- read.csv("https://raw.githubusercontent.com/jasperschalla/station_data/master/dwd_urban.csv")
-# 
-# dwd_urban <- as_tibble(dwd_urban) %>% 
-# 	mutate(dttm = ymd_hms(dttm))
-# 
-# # uni meteo
-# uni_meteo <- read.csv("https://raw.githubusercontent.com/jasperschalla/station_data/master/uni_meteo.csv")
-# 
-# uni_meteo <- as_tibble(uni_meteo) %>% 
-# 	mutate(dttm = ymd_hms(dttm))
-# 
-# # wbi
-# wbi <- read.csv("https://raw.githubusercontent.com/jasperschalla/station_data/master/wbi.csv")
-# 
-# wbi <- as_tibble(wbi) %>% 
-# 	mutate(dttm = ymd_hms(dttm))
-# 
-# # join
-# data <- left_join(my_hobo, dwd_airport, by = "dttm") %>% 
-# 	left_join(., dwd_urban, by = "dttm") %>% 
-# 	left_join(., uni_meteo, by = "dttm") %>% 
-# 	left_join(., wbi, by = "dttm")
-# 
-# 
-# # long format
-# data_long <- data %>%
-# 	pivot_longer(cols = -c(dttm), 
-# 		     names_to = "station",
-# 		     values_to = "temp")
-# head(data_long)
-# 
-# 
-# #plot
-# ggplot(data = data_long, aes(x = dttm, y = temp)) +
-# 	geom_line(aes(lty = station, colour = station)) +
-# 	theme_bw() +
-# 	labs(title = "Comparison across stations",
-# 	     x = "Date", y = "Temperature (°C)")
-# 
+# ---
+# 	title: "Exercise 3"
+# author: "Felix Radtke"
+# date: "14 1 2022"
+# output: html_document
+# ---
 
-#############################################################
 
-#############################################################
+### Loaded packages
+
+library("lubridate")
+library("tidyverse")
+library("zoo")
+library("tibbletime")
+
+rm(list=ls())
+
+
 #-------------------------------------------------------------------------
 ############################### load Data ################################
 #-------------------------------------------------------------------------
 
-hobo_hourly <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_hourly.csv", show_col_types = FALSE)
+hobo_hourly <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_hourly.csv")
+#, show_col_types = FALSE
 hobo_hourly$date_time <- as.POSIXct(hobo_hourly$date_time)
 
 #---------------------------------------------------------------------------
@@ -154,59 +98,34 @@ head(data_long)
 # #plot
 ggplot(data = data_long, aes(x = day_time, y = temp)) +
 	geom_line(aes(colour = station)) +
-	theme_bw() +
+	theme_minimal() +
+	theme(legend.position = c(0.90, 0.85)) +
 	labs(title = "Comparison across stations",
 	     x = "", y = "Temperature (°C)")
 
-# ######
-# # lm
-# 
-# ## DWD_Urban matches best
-# # linear models
-# summary(lm(my_hobo ~ dwd_airport, refs))$r.squared
-# # 0.9673027
-# 
-# summary(lm(my_hobo ~ dwd_urban, refs))$r.squared
-# # 0.9753459
-# 
-# summary(lm(my_hobo ~ uni_meteo, refs))$r.squared
-# # 0.9855592
-# 
-# summary(lm(my_hobo ~ wbi, refs))$r.squared
-# # 0.9852601
-# 
-# lm_uni_meteo <- lm(my_hobo ~ uni_meteo, refs)
-# # Coefficients:
-# # (Intercept)    uni_meteo  
-# # -0.3236       1.0141  
-# 
-# 
-# #Seems like uni-meteo fits best
-# 
-# # predict NA values
-input <- data.frame(refs$uni_meteo)
-predicted <- predict(lm_Uni, newdata = input)
 
-# linearregression with wbi
-export <- refs %>%
-	mutate(th = ifelse(is.na(my_hobo), 0.9852601*uni_meteo+0.4635, my_hobo)) %>%
-	mutate(origin = ifelse(is.na(my_hobo), "R", "H")) %>%
-	select("day_time", "th", "origin")
-# 
-# 
-# 
 
 ####################
 #------ 3.2 Regression model -------
 
 lm_DWD <- lm(refs$dwd_airport ~ refs$my_hobo, na.action=na.omit)
 summary(lm_DWD)$r.squared # R² = 0.9673027
+
 lm_DWD_urban <- lm(refs$dwd_urban ~ refs$my_hobo, na.action=na.omit)
 summary(lm_DWD_urban)$r.squared # R² = 0.9753459
+
 lm_Uni <- lm(refs$uni_meteo ~ refs$my_hobo, na.action=na.omit)
 summary(lm_Uni)$r.squared # R² = 0.9855592
+
 lm_WBI <- lm(refs$wbi ~ refs$my_hobo, na.action=na.omit)
 summary(lm_WBI)$r.squared # R² = 0.9852601
+
+# results of lm calculation
+lm_sum <- tibble(lm_DWD = summary(lm_DWD)$r.squared,
+		 lm_DWD_urban = summary(lm_DWD_urban)$r.squared,
+		 lm_Uni = summary(lm_Uni)$r.squared,
+		 lm_WBI = summary(lm_WBI)$r.squared)
+
 # A higher R² indicates a more suitable reference station to 
 # fill data gaps by data from a reference series
 
@@ -219,24 +138,39 @@ summary(lm_WBI)$r.squared # R² = 0.9852601
 
 # linearregression with wbi
 export <- refs %>%
-	mutate(th = ifelse(is.na(my_hobo), 0.9852601*uni_meteo+0.4635, my_hobo)) %>%
+	mutate(th = ifelse(is.na(my_hobo), 0.9852601*uni_meteo+0.398482, my_hobo)) %>%
 	mutate(origin = ifelse(is.na(my_hobo), "R", "H")) %>%
-	select("day_time", "th", "origin")
+	rename(dttm = day_time) %>% 
+	select("dttm", "th", "origin")
 
-# 
-# hobo_filled <- hobo_hourly %>% 
-# 	mutate(origin = if_else(is.na(th), "R", "H"),
-# 	       th = if_else(is.na(th), predicted, th)) %>% 
-# 	mutate(th = round(th, 3)) %>% 
-# 	select(date_time, th, origin)
 
-head(hobo_filled, 10)
-sum(which(hobo_filled$th == NA)) # 0
-# R = filled with R regression model (lm_WBI) and H = origin Hobo data (my_hobo)
+
+head(export, 10)
+sum(is.na(export$th)) #0
+# R = filled with R regression model (lm_uni_meteo) and H = origin Hobo data (my_hobo)
+
+# plot zum überprüfen
+export_validate <- tibble(dttm = export$dttm,
+			  hobo_original = hobo_hourly$th,
+			  #ref_station = Uni$temp,
+			  hobo_corrected = export$th) 
+
+export_validate_long <- export_validate %>% 
+	pivot_longer(!dttm, names_to = 'origin', values_to = 'temp')
+
+ggplot(data = export_validate_long, aes(x = dttm, y = temp)) +
+	geom_line(aes(colour = origin)) +
+	geom_line(data = Uni, col = 'grey', lty = 2) +
+	theme_minimal() +
+	scale_color_manual(values = c(hobo_corrected = 'red', hobo_original = 'darkblue', ref_station = 'grey')) +
+	theme(legend.position = c(0.90, 0.85)) +
+	labs(title = "Comparison across origin",
+	     x = "", y = "Temperature (°C)")
 
 
 ## Export
-write.csv(export, file = "C:/Users/Imifr/Documents/Github/hyd_data_management/10610854_Th.csv", append = FALSE, quote = FALSE, sep = ",",
-	  eol = "\n", na = "NA", dec = ".", row.names = FALSE,
-	  col.names = TRUE, qmethod = c("escape", "double"),
-	  fileEncoding = "")
+# stand PC
+write_csv(x=export, file = 'A:/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10347355_Th.csv')
+
+# surface
+write_csv(x=export, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10347355_Th.csv')
