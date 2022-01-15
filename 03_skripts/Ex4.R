@@ -22,6 +22,8 @@ hobo_10min <- data_10min <- read_csv(file = 'https://raw.githubusercontent.com/d
 
 hobo_hourly <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_Th.csv")
 
+hobo_hourly_with_NA <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_hourly.csv")
+
 # ---- 1 mean temperature ----
 hobo_indices <- tibble(T_avg = round(mean(hobo_hourly$th), 3))
 
@@ -89,18 +91,25 @@ hobo_10min_max_lux <- hobo_10min %>%
 	ungroup() %>% 
 	filter(meanlux == max(meanlux))
 
-
-
 hobo_indices <- hobo_indices %>% 
-	mutate(L_max = hobo_10min_max_lux$meanlux)
+	mutate(L_max = hobo_10min_max_lux$hm)
+
 
 # ---- 8 fraction of missing values ----
-# 
+hobo_NA_count <- hobo_hourly_with_NA %>% 
+	mutate(NA_count = if_else(is.na(th), 1, 0)) %>% 
+	count(NA_count)
+
+hobo_indices <- hobo_indices %>% 
+	mutate(f_NA = round(hobo_NA_count[2,2]/length(hobo_hourly_with_NA$th), 3))
 
 
 # ---- 9 ID of ref. station with highest R² ----
-# 
+
+hobo_indices <- hobo_indices %>% 
+	mutate(ref_id = 'uni_meteo')
 
 
 # ---- 10 R² value of corresponding ref.station ----
-# 
+hobo_indices <- hobo_indices %>% 
+	mutate(ref_r2 = round(0.9852601, 3))
