@@ -124,6 +124,14 @@ lm_sum <- tibble(lm_DWD = summary(lm_DWD)$r.squared,
 		 lm_DWD_urban = summary(lm_DWD_urban)$r.squared,
 		 lm_Uni = summary(lm_Uni)$r.squared,
 		 lm_WBI = summary(lm_WBI)$r.squared)
+sort(lm_sum)
+
+plot(hobo_hourly$th, DWD$temp)
+plot(hobo_hourly$th, DWD_urban$temp)
+plot(hobo_hourly$th, WBI$temp)
+plot(hobo_hourly$th, Uni$temp)
+
+
 
 # A higher R² indicates a more suitable reference station to 
 # fill data gaps by data from a reference series
@@ -137,7 +145,7 @@ lm_sum <- tibble(lm_DWD = summary(lm_DWD)$r.squared,
 
 # linearregression with wbi
 export <- refs %>%
-	mutate(th = ifelse(is.na(my_hobo), 0.9852601*uni_meteo+0.398482, my_hobo)) %>%
+	mutate(th = ifelse(is.na(my_hobo), round(0.9852601*uni_meteo+0.398482, 3), my_hobo)) %>%
 	mutate(origin = ifelse(is.na(my_hobo), "R", "H")) %>%
 	rename(dttm = day_time) %>% 
 	select("dttm", "th", "origin")
