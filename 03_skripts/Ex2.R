@@ -18,13 +18,6 @@ data_10min_QC1 <- data_10min %>%
 
 sum(data_10min_QC1$qc1, na.rm = T)
 
-# check for daytime pattern
-daytime_pattern_qc2 <- data_10min_QC2 %>% 
-	filter(qc2 == 1) 
-
-range(daytime_pattern_qc2$dttm)
-	
-
 
 # ---- Check for plausible rate of change 1.2 ----
 data_10min_QC2 <- data_10min_QC1 %>% 
@@ -59,7 +52,7 @@ data_10min_QC4 <- data_10min_QC3 %>%
 		between(lux, 2000, 15000) ~ "overcast_light",
 		between(lux, 15000, 20000) ~ "clear_sky",
 		between(lux, 20000, 50000) ~ "sunshine",
-		lux > 50000 ~ "sunshine_bright"
+		lux > 50000 ~ "sunshine_bright",
 	)) %>% 
 	mutate(time = substring(dttm, 12, 20)) %>% 
 	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")),

@@ -18,7 +18,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Loaded packages
 
-```{r libraries, message=FALSE}
+```{r libraries}
 # Load all packages here, consider to mute output of this code chunk
 # https://rmarkdown.rstudio.com/lesson-3.html
 library(tidyverse)
@@ -38,54 +38,39 @@ meanNA <- function(x){mean(x, na.rm = TRUE)}
 
 ## 1. Quality control procedures (4 QCPs)
 
-```{r, eval = TRUE, message=FALSE}
-# Load data from Github
+```{r, eval = TRUE}
+# Load data from Github (then eval = TRUE)
 data_10min <- read_csv(file = 'https://raw.githubusercontent.com/data-hydenv/data/master/hobo/2022/10_minute/10347355.csv',  col_names = T) 
-
-head(data_10min)
+head(data)
 ```
 
 ### 1.1 Measurement range (Plausible values)
 
 ```{r qcp1, eval = TRUE}
+# code for qcp2 here, e.g.: (set eval = TRUE to activate the code chunk)
 data_10min_QC1 <- data_10min %>% 
 	mutate(qc1 = if_else(between(temp, -20, 70), 0, 1))
 
+sum(data_10min_QC1$qc1, na.rm = T)
 ```
 
 **Question**: How many data points are outside the measurement range?
 
-**Answer**: 0 Points are outside the measurement range.
-```{r}
-sum(data_10min_QC1$qc1, na.rm = T)
-
-```
-
-
+**Answer**:
+0 Points are outside the measurement range.
 
 ### 1.2 Plausible rate of change
 
-```{r qcp2, eval=TRUE}
+```{r qcp2}
 data_10min_QC2 <- data_10min_QC1 %>% 
 	mutate(qc2 = if_else(lag(temp) > (temp + 1) | lag(temp) < (temp - 1), 1, 0))
 
+sum(data_10min_QC2$qc2, na.rm = T)
 ```
 
 **Question**: Describe shortly how many data points failed during this QCP and discuss whether there is a certain daytime pattern of failure or not?
 
-
-```{r, eval=TRUE}
-sum(data_10min_QC2$qc2, na.rm = T) 
-
-```
-```{r, eval=TRUE}
-# check for daytime pattern of failure
-daytime_pattern_qc2 <- data_10min_QC2 %>% 
-	filter(qc2 == 1) 
-
-range(daytime_pattern_qc2$dttm)
-```
-**Answer**: 87 data points failed during this QCP. All failed points are between 12:40 and 15:00, so there is a significant connection between the implausible rate of change and the time between noon and early afternoon.
+**Answer**:
 
 ### 1.3 Minimum variability (Persistence)
 
@@ -118,15 +103,15 @@ data_10min_QC4 <- data_10min_QC3 %>%
 		between(lux, 2000, 15000) ~ "overcast_light",
 		between(lux, 15000, 20000) ~ "clear_sky",
 		between(lux, 20000, 50000) ~ "sunshine",
-		lux > 50000 ~ "sunshine_bright")) %>% 
-  
+		lux > 50000 ~ "sunshine_bright",
+	)) %>% 
 	mutate(time = substring(dttm, 12, 20)) %>% 
-  
-  # transform time to milliseconds, depending on the actual day
 	mutate(day_night = if_else(between(as.numeric(as.POSIXct(time, format="%H:%M:%S")),
 					   as.numeric(as.POSIXct('06:00:00', format="%H:%M:%S")), 
 					   as.numeric(as.POSIXct('17:59:59', format="%H:%M:%S"))), 
 				   "day","night")) %>% 
+	# transform time to milliseconds, depending on the actual day
+
 
 	mutate(lux_sun = if_else(SIC_class == "sunshine" & day_night == "day", 1, 0),
 	       lux_sun = rollapply(lux_sun, width = 3, FUN = sum, fill = NA),

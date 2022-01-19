@@ -19,7 +19,7 @@ rm(list=ls())
 ############################### load Data ################################
 #-------------------------------------------------------------------------
 
-hobo_hourly <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10801132_hourly.csv")
+hobo_hourly <- read_csv("https://raw.githubusercontent.com/Wynchemna/data_management_hobo/main/02_data_processed/10347355_hourly.csv")
 #, show_col_types = FALSE
 hobo_hourly$date_time <- as.POSIXct(hobo_hourly$date_time)
 
@@ -126,6 +126,13 @@ lm_sum <- tibble(lm_DWD = summary(lm_DWD)$r.squared,
 		 lm_WBI = summary(lm_WBI)$r.squared)
 sort(lm_sum)
 
+plot(hobo_hourly$th, DWD$temp)
+plot(hobo_hourly$th, DWD_urban$temp)
+plot(hobo_hourly$th, WBI$temp)
+plot(hobo_hourly$th, Uni$temp)
+
+
+
 # A higher R² indicates a more suitable reference station to 
 # fill data gaps by data from a reference series
 
@@ -138,7 +145,7 @@ sort(lm_sum)
 
 # linearregression with wbi
 export <- refs %>%
-	mutate(th = ifelse(is.na(my_hobo), 0.9335046*wbi+0.12715, my_hobo)) %>%
+	mutate(th = ifelse(is.na(my_hobo), round(0.9852601*uni_meteo+0.398482, 3), my_hobo)) %>%
 	mutate(origin = ifelse(is.na(my_hobo), "R", "H")) %>%
 	rename(dttm = day_time) %>% 
 	select("dttm", "th", "origin")
@@ -170,7 +177,7 @@ ggplot(data = export_validate_long, aes(x = dttm, y = temp)) +
 
 ## Export
 # stand PC
-write_csv(x=export, file = 'A:/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10801132_Th.csv')
+write_csv(x=export, file = 'A:/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10347355_Th.csv')
 
 # surface
-write_csv(x=export, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10801132_Th.csv')
+write_csv(x=export, file = 'C:/Users/radtk/OneDrive/Dokumente/Data_management_storage/data_management_hobo/02_data_processed/10347355_Th.csv')
