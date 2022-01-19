@@ -6,12 +6,12 @@
 # # ---
 # 
 # 
-# ### Loaded packages
-# 
-# library("lubridate")
-# library("tidyverse")
-# library("zoo")
-# library("tibbletime")
+### Loaded packages
+
+library("lubridate")
+library("tidyverse")
+library("zoo")
+library("tibbletime")
 # 
 # rm(list=ls())
 # 
@@ -219,7 +219,7 @@ summary(lm_WBI)$r.squared # R² = 0.9852601
 
 # linearregression with wbi
 export <- refs %>%
-	mutate(th = ifelse(is.na(my_hobo), 0.9852601*uni_meteo+0.4635, my_hobo)) %>%
+	mutate(th = ifelse(is.na(my_hobo), 0.9855592*uni_meteo+0.398482, my_hobo)) %>%
 	mutate(origin = ifelse(is.na(my_hobo), "R", "H")) %>%
 	select("day_time", "th", "origin")
 
