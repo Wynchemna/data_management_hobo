@@ -236,7 +236,7 @@ sum(which(hobo_filled$th == NA)) # 0
 
 
 ## Export
-write.csv(export, file = "C:/Users/Imifr/Documents/Github/hyd_data_management/10610854_Th.csv", append = FALSE, quote = FALSE, sep = ",",
+write.csv(export, file = "", append = FALSE, quote = FALSE, sep = ",",
 	  eol = "\n", na = "NA", dec = ".", row.names = FALSE,
 	  col.names = TRUE, qmethod = c("escape", "double"),
 	  fileEncoding = "")
